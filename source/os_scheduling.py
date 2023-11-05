@@ -1,17 +1,18 @@
-# This is a sample Python script.
 import pandas as pd
+import sys
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
     # Reading Text File
-    text_input = pd.read_csv("input1.txt", sep=" ", header=None)
+    text_file = sys.argv[1]
+    text_input = pd.read_csv(text_file, sep=" ", header=None)
 
     i_cpu_high = 1188
     i_cpu_mid_high = 918
     i_cpu_mid_low = 648
     i_cpu_low = 384
-    i_cpu_idle = "IDLE"
+    i_cpu_idle = 84
 
     # Accessing Values from Text File
     number_tasks = text_input.loc[0].at[0]
@@ -26,21 +27,22 @@ if __name__ == '__main__':
     table = []
     min_table = []
 
-    # Finding Earliest Deadline at maximum CPU Frequency #
-    for i in range(row_count-1):
-        table.append(text_input.iloc[i+1])
+    if sys.argv[2] == "EE":
+        # Finding Earliest Deadline at maximum CPU Frequency #
+        for i in range(row_count-1):
+            table.append(text_input.iloc[i+1])
 
-    for i in range(len(table)):
-        min_table = sorted(table, key=lambda x: x[1])
+        for i in range(len(table)):
+            min_table = sorted(table, key=lambda x: x[1])
 
-    # print("Sorted: ", min_table)
+        # print("Sorted: ", min_table)
 
-    # Scheduler
-    clock = 1
-    for i in range(len(min_table)):
-        print(i+clock, min_table[i][0], i_cpu_high, min_table[i][2],
-              (cpu_high * min_table[i][1] * 0.001).astype(str)+"J")
-        clock += min_table[i][2]-1
+        # EDF Scheduler
+        clock = 1
+        for i in range(len(min_table)):
+            print(i+clock, min_table[i][0], i_cpu_high, min_table[i][2],
+                  (cpu_high * min_table[i][1] * 0.001).astype(str)+"J")
+            clock += min_table[i][2]-1
 
     # For Testing
     """
