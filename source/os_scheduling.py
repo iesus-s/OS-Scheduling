@@ -13,7 +13,7 @@ if __name__ == '__main__':
     i_cpu_mid_low = 648
     i_cpu_low = 384
     i_cpu_idle = 84
-
+    clock = 0
     # Accessing Values from Text File
     number_tasks = text_input.loc[0].at[0]
     system_execution = text_input.loc[0].at[1]
@@ -22,27 +22,65 @@ if __name__ == '__main__':
     cpu_low_mid = text_input.loc[0].at[4]
     cpu_low = text_input.loc[0].at[5]
     cpu_idle = text_input.loc[0].at[6]
+    cpu_values = [cpu_high, cpu_high_mid, cpu_low_mid, cpu_low, cpu_idle]
 
-    row_count = len(text_input)
-    table = []
-    min_table = []
-
-    if sys.argv[2] == "EE":
+    if len(sys.argv) == 3:
         # Finding Earliest Deadline at maximum CPU Frequency #
-        for i in range(row_count-1):
-            table.append(text_input.iloc[i+1])
+        row_count = len(text_input)
+        table = []
+        min_table = []
+        total_energy = [0, 0, 0, 0, 0]
+        if sys.argv[2] == "EDF":
+            for i in range(row_count-1):
+                table.append(text_input.iloc[i+1])
 
-        for i in range(len(table)):
-            min_table = sorted(table, key=lambda x: x[1])
+            for i in range(len(table)):
+                min_table = sorted(table, key=lambda x: x[1])
 
-        # print("Sorted: ", min_table)
+            # EDF Scheduler
+            clock = 1
+            print("Earliest Deadline at Maximum CPU Frequency: ")
+            # Getting Total Energy Used and Total Execution
+            for i in range(len(min_table)):
+                total_energy[i] = cpu_high * min_table[i][2] * 0.001
+            # Printing Schedule Results
+            for i in range(len(min_table)):
+                print(clock, min_table[i][0], i_cpu_high, min_table[i][2],
+                      total_energy[i], "J")
+                # Keeping track of the clock
+                clock += min_table[i][2]
 
-        # EDF Scheduler
-        clock = 1
-        for i in range(len(min_table)):
-            print(i+clock, min_table[i][0], i_cpu_high, min_table[i][2],
-                  (cpu_high * min_table[i][1] * 0.001).astype(str)+"J")
-            clock += min_table[i][2]-1
+        print("Total Energy Consumption: ", sum(total_energy), "J")
+        print("Percentage Time spent IDLE: 0 seconds")
+        print("Total Execution Time: ", clock-1, "seconds")
+
+    if len(sys.argv) == 4:
+        # Finding Earliest Deadline and Energy Efficiency #
+        row_count = len(text_input)
+        table = []
+        min_table = []
+        total_energy = [0, 0, 0, 0, 0]
+        if sys.argv[2] == "EDF" and sys.argv[3] == "EE":
+            for i in range(row_count-1):
+                table.append(text_input.iloc[i+1])
+
+            for i in range(len(table)):
+                min_table = sorted(table, key=lambda x: x[1])
+
+            # EDF Scheduler with EE
+            for i in range(len(table)-1):
+                clock = 1
+                print("Earliest Deadline at Maximum CPU Frequency: ")
+                # Getting Total Energy Used and Total Execution
+                for j in range(len(min_table)):
+                    total_energy[j] = cpu_values[i] * min_table[j][2+i] * 0.001
+                # Printing Schedule Results
+                for k in range(len(min_table)):
+                    print(k + clock, min_table[k][0], min_table[k][2+i],
+                          total_energy[k], "J")
+                    # Keeping track of the clock
+                    clock += min_table[k][2+i]-1
+                print("Total Energy Consumption: ", sum(total_energy), "J")
 
     # For Testing
     """
