@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+from sys import exit
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -13,7 +14,6 @@ if __name__ == '__main__':
     i_cpu_mid_low = 648
     i_cpu_low = 384
     i_cpu_idle = 84
-    clock = 0
     # Accessing Values from Text File
     number_tasks = text_input.loc[0].at[0]
     system_execution = text_input.loc[0].at[1]
@@ -25,18 +25,76 @@ if __name__ == '__main__':
     cpu_values = [cpu_high, cpu_high_mid, cpu_low_mid, cpu_low, cpu_idle]
 
     if len(sys.argv) == 3:
-        # Finding Earliest Deadline at maximum CPU Frequency #
+        # Finding Earliest Deadline First at maximum CPU Frequency #
         row_count = len(text_input)
         table = []
+        iterations = []
+        edf_table = []
+        ex_table = []
         min_table = []
         total_energy = [0, 0, 0, 0, 0]
+        ex_time = 0
+        index = 0
+        index_check = 0
         if sys.argv[2] == "EDF":
+            # Create EDF Table
+            for i in range(row_count - 1):
+                table.append(text_input.iloc[i + 1])
+            for i in range(len(table)):
+                edf_table.append(table[i][1])
+            for i in range(len(table)):
+                ex_table.append(table[i][2])
+            for i in range(len(table)):
+                iterations.append(1)
+            # EDF Scheduler
+            for clock in range(10):
+                print(clock, " ", end="")
+                print(table[edf_table.index(min(edf_table))][0], " ", end="")
+                print(i_cpu_high, " ", end="")
+
+                # MAIN SCHEDULE
+                index = edf_table.index(min(edf_table))
+                index_check = edf_table.index(min(edf_table))
+                while index == index_check:
+                    # print(table[edf_table.index(min(edf_table))][2], " ", end="")
+                    for i in range(len(edf_table)):
+                        edf_table[i] -= 1
+
+                    ex_table[edf_table.index(min(edf_table))] -= 1
+                    edf_table[edf_table.index(min(edf_table))] -= 1
+                    ex_time += 1
+                    clock += 1
+                    index_check = edf_table.index(min(edf_table))
+
+                    if edf_table.index(min(edf_table)) == 0:
+                        index = 0
+
+                    print(index)
+                    print(index_check)
+                    exit()
+
+                iterations[edf_table.index(min(edf_table))] += 1
+                print(ex_time, " ", end="")
+                print(round(i_cpu_high * ex_time * 0.001, 2), "J")
+                # END
+
+                # Updating EDF & Execution Tables
+                ex_table[edf_table.index(min(edf_table))] = table[edf_table.index(min(edf_table))][2]
+                edf_table[edf_table.index(min(edf_table))] = (iterations[edf_table.index(min(edf_table))]
+                                                              * table[edf_table.index(min(edf_table))][1])
+                for i in range(len(table)):
+                    edf_table[i] = (edf_table[i] - 1)
+                clock += 1
+
+            # Indexing Earliest Deadline
+            # print(edf_table.index(max(edf_table)))
+            """
             for i in range(row_count-1):
                 table.append(text_input.iloc[i+1])
 
             for i in range(len(table)):
                 min_table = sorted(table, key=lambda x: x[1])
-
+            
             # EDF Scheduler
             clock = 1
             print("Earliest Deadline at Maximum CPU Frequency: ")
@@ -53,7 +111,7 @@ if __name__ == '__main__':
         print("Total Energy Consumption: ", sum(total_energy), "J")
         print("Percentage Time spent IDLE: 0 seconds")
         print("Total Execution Time: ", clock-1, "seconds")
-
+        """
     if len(sys.argv) == 4:
         # Finding Earliest Deadline and Energy Efficiency #
         row_count = len(text_input)
@@ -95,4 +153,3 @@ if __name__ == '__main__':
     
     print(table)
     """
-
