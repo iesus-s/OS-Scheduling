@@ -74,7 +74,7 @@ if __name__ == '__main__':
                     print(table[index][0], " ", end="")
                     print(i_cpu_high, " ", end="")
                 # Executing
-                    ex_time = 0
+                ex_time = 0
                 while index == index_check:
                     ex_time += 1
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
                 if state == 1:
                     print(ex_time, " ", end="")
-                    print(round(i_cpu_high * ex_table[index_check] * 0.001, 2), "J")
+                    print(round(i_cpu_idle * ex_time * 0.001, 2), "J")
                 else:
                     print(ex_table[index_check], " ", end="")
                     print(round(i_cpu_high * ex_table[index_check] * 0.001, 2), "J")
