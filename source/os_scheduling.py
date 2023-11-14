@@ -32,6 +32,7 @@ if __name__ == '__main__':
         it_flag = []
         edf_table = []
         ex_table = []
+        current_execute = 0
         temp_table = []
         total_energy = 0
         total_idle = 0
@@ -42,6 +43,7 @@ if __name__ == '__main__':
         index_prev = 3
         clock = 0
         state = 0
+        duplicate = []
         if sys.argv[2] == "EDF":
             # Create EDF Table
             for i in range(row_count - 1):
@@ -74,6 +76,7 @@ if __name__ == '__main__':
                 else:
                     print(table[index][0], " ", end="")
                     print(i_cpu_high, " ", end="")
+
                 # Executing
                 ex_time = 0
                 while index == index_check:
@@ -95,12 +98,28 @@ if __name__ == '__main__':
 
                     # Check for Task Arrival
                     if clock in temp_table:
+                        # print("CLOCK------------------------------------", clock)
+                        duplicate = []
+                        for i, v in enumerate(temp_table):
+                            if v == clock:
+                                duplicate.append(i)
+                        # print("DUP", duplicate)
                         if it_flag[temp_table.index(clock)] == 1:
                             hold = temp_table.index(clock)
-                            temp_table[hold] = iterations[hold] * table[hold][1]
-                            edf_table[hold] = temp_table[hold]
-                            it_flag[hold] = 0
-                            index = 10
+                            if duplicate:
+                                for k in duplicate:
+                                    temp_table[k] = iterations[k] * table[k][1]
+                                    edf_table[k] = temp_table[k]
+                                    # ex_table[index] = table[index][2]
+                                    it_flag[k] = 0
+                                    index = 10
+                                    # print("XXXXXXXXXXX")
+                            else:
+                                temp_table[hold] = iterations[hold] * table[hold][1]
+                                edf_table[hold] = temp_table[hold]
+                                # ex_table[index] = table[index][2]
+                                it_flag[hold] = 0
+                                index = 10
 
                 if state == 1:
                     print(ex_time, " ", end="")
@@ -108,9 +127,14 @@ if __name__ == '__main__':
                     total_energy += round(i_cpu_idle * ex_time * 0.001, 2)
                     total_idle += ex_time
                 else:
-                    print(ex_table[index_check], " ", end="")
-                    print(round(i_cpu_high * ex_table[index_check] * 0.001, 2), "J")
+                    print(ex_time, " ", end="")
+                    print(round(i_cpu_high * ex_time * 0.001, 2), "J")
                     total_energy += round(i_cpu_high * ex_time * 0.001, 2)
+                    # print(edf_table)
+                    # print("TEMP", temp_table)
+                    # print(duplicate)
+                    # print(iterations)
+                    # print(it_flag)
             print("Total Energy Consumption: ", total_energy, "J")
             print("Percentage Time spent IDLE: ", total_idle, "seconds")
             print("Total Execution Time: ", clock, "seconds")
@@ -121,7 +145,7 @@ if __name__ == '__main__':
         table = []
         iterations = []
         it_flag = []
-        edf_table = []
+        rm_table = []
         ex_table = []
         temp_table = []
         total_energy = 0
@@ -133,11 +157,12 @@ if __name__ == '__main__':
         index_prev = 3
         clock = 0
         state = 0
+
         # Create EDF Table
         for i in range(row_count - 1):
             table.append(text_input.iloc[i + 1])
         for i in range(len(table)):
-            edf_table.append(table[i][1])
+            rm_table.append(table[i][1])
         for i in range(len(table)):
             ex_table.append(table[i][2])
         for i in range(len(table)):
@@ -150,6 +175,16 @@ if __name__ == '__main__':
         # EDF Scheduler
         while clock < 1000:
 
+            state = 0
+            print(clock + 1, " ", end="")
+            if sum(temp_table) == 50000:
+                print("IDLE", " ", end="")
+                print(i_cpu_idle, " ", end="")
+                state = 1
+
+            index = rm_table.index(min(rm_table))
+            print(table[index][0], " ", end="")
+            print(rm_table[0])
             exit()
 
     if len(sys.argv) == 4:
