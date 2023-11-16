@@ -38,12 +38,15 @@ if __name__ == '__main__':
         total_idle = 0
         total_execution = 0
         ex_time = 0
-        index = 0
+        windex = 10
+        zoo = 0
         index_check = 0
         index_prev = 3
-        clock = 0
+        clock = 1
         state = 0
+        glock = 1
         duplicate = []
+        ex_time = 0
         if sys.argv[2] == "EDF":
             # Create EDF Table
             for i in range(row_count - 1):
@@ -60,85 +63,96 @@ if __name__ == '__main__':
                 it_flag.append(1)
 
             # EDF Scheduler
-            while clock < 1000:
+            for clock in range(1000):
+                clock += 1
                 # Check for Earliest Deadline First
                 min_table = []
                 for i in edf_table:
-                    min_table.append(i - clock)
+                    min_table.append(i)
+
                 index = min_table.index(min(min_table))
                 index_check = index
-                print(clock+1, " ", end="")
-                state = 0
-                if sum(edf_table) == 50000:
-                    print("IDLE", " ", end="")
-                    print(i_cpu_idle, " ", end="")
-                    state = 1
-                else:
-                    print(table[index][0], " ", end="")
-                    print(i_cpu_high, " ", end="")
 
-                # Executing
-                ex_time = 0
-                while index == index_check:
-                    ex_time += 1
+                if windex == 10:
+                    print(clock, " ", end="")
+                    state = 0
+                    if sum(edf_table) == 50000:
+                        print("IDLE", " ", end="")
+                        print(i_cpu_idle, " ", end="")
+                        state = 1
+                    else:
+                        print(table[index][0], " ", end="")
+                        print(i_cpu_high, " ", end="")
+                    windex = 100
 
-                    # Updates counters
+                # Updates counters
+                # print("EDF TABLE ", edf_table)
+                ex_time += 1
+                if state == 0:
+                    ex_table[index] -= 1
                     edf_table[index] -= 1
-                    if state == 0:
-                        ex_table[index] -= 1
-                    clock += 1
 
-                    # Checks for Execution End & Updates Ex table
-                    if ex_table[index] == 0:
-                        it_flag[index] = 1
-                        iterations[index] += 1
-                        edf_table[index] = 10000
-                        ex_table[index] = table[index][2]
-                        index = 10
+                # Checks for Execution End & Updates Ex table
+                if ex_table[index] == 0:
+                    it_flag[index] = 1
+                    iterations[index] += 1
+                    edf_table[index] = 10000
+                    ex_table[index] = table[index][2]
+                    windex = 10
+                    # print("IT ", iterations)
 
-                    # Check for Task Arrival
-                    if clock in temp_table:
-                        # print("CLOCK------------------------------------", clock)
+                # Check for Task Arrival
+                # print("CLOCK------------------------------------", clock)
+                for z in temp_table:
+                    if z == clock:
+                        # print(temp_table)
+                        # print(iterations)
+                        # print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", temp_table.index(clock))
+                        ugh = temp_table.index(clock)
                         duplicate = []
                         for i, v in enumerate(temp_table):
                             if v == clock:
                                 duplicate.append(i)
-                        # print("DUP", duplicate)
-                        if it_flag[temp_table.index(clock)] == 1:
-                            hold = temp_table.index(clock)
-                            if duplicate:
-                                for k in duplicate:
-                                    temp_table[k] = iterations[k] * table[k][1]
-                                    edf_table[k] = temp_table[k]
-                                    # ex_table[index] = table[index][2]
-                                    it_flag[k] = 0
-                                    index = 10
-                                    # print("XXXXXXXXXXX")
-                            else:
-                                temp_table[hold] = iterations[hold] * table[hold][1]
-                                edf_table[hold] = temp_table[hold]
+                        if duplicate:
+                            for k in duplicate:
+                                temp_table[k] = (iterations[k] * table[k][1])
+                                edf_table[k] = temp_table[k]
                                 # ex_table[index] = table[index][2]
-                                it_flag[hold] = 0
-                                index = 10
+                                it_flag[k] = 0
+                        else:
+                            temp_table[ugh] = (iterations[ugh] * table[ugh][1])
+                            edf_table[ugh] = temp_table[ugh]
+                            # ex_table[index] = table[index][2]
+                            it_flag[ugh] = 0
 
-                if state == 1:
-                    print(ex_time, " ", end="")
-                    print(round(i_cpu_idle * ex_time * 0.001, 2), "J")
-                    total_energy += round(i_cpu_idle * ex_time * 0.001, 2)
-                    total_idle += ex_time
-                else:
-                    print(ex_time, " ", end="")
-                    print(round(i_cpu_high * ex_time * 0.001, 2), "J")
-                    total_energy += round(i_cpu_high * ex_time * 0.001, 2)
-                    # print(edf_table)
+                min_table = []
+                for i in edf_table:
+                    min_table.append(i)
+                index = min_table.index(min(min_table))
+                if index != index_check:
+                    windex = 10
+
+                if windex == 10:
+                    if state == 1:
+                        print(ex_time, " ", end="")
+                        print(round(i_cpu_idle * ex_time * 0.001, 2), "J")
+                        total_energy += round(i_cpu_idle * ex_time * 0.001, 2)
+                        total_idle += ex_time
+                    else:
+                        print(ex_time, " ", end="")
+                        print(round(i_cpu_high * ex_time * 0.001, 2), "J")
+                        total_energy += round(i_cpu_high * ex_time * 0.001, 2)
+                    ex_time = 0
+
+
+                    # print("EDF TABLE ", edf_table)
                     # print("TEMP", temp_table)
                     # print(duplicate)
-                    # print(iterations)
+                    # print("IT ", iterations)
                     # print(it_flag)
             print("Total Energy Consumption: ", total_energy, "J")
             print("Percentage Time spent IDLE: ", total_idle, "seconds")
             print("Total Execution Time: ", clock, "seconds")
-
     if sys.argv[2] == "RM":
         # Finding Earliest Deadline First at maximum CPU Frequency #
         row_count = len(text_input)
