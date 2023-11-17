@@ -143,7 +143,6 @@ if __name__ == '__main__':
                         total_energy += round(i_cpu_high * ex_time * 0.001, 2)
                     ex_time = 0
 
-
                     # print("EDF TABLE ", edf_table)
                     # print("TEMP", temp_table)
                     # print(duplicate)
@@ -255,17 +254,14 @@ if __name__ == '__main__':
                         total_energy += round(i_cpu_high * cpu_time * 0.001, 2)
 
                 elif sum(temp_table) == 0:
-
-                    ## make idle clock
+                    # make idle clock
                     while sum(temp_table) == 0:
-
                         idle_count = idle_count + 1
-                        ##clock_start = clock
+                        # clock_start = clock
                         clock_end = clock - 1
-
                         clock = clock + 1
 
-                        ## Check for new deadlines
+                        # Check for new deadlines
                         for j in range(len(sorted_rm)):
                             if clock == next_deadline[j]:
                                 temp_table[j] = sorted_ex[j]
@@ -273,11 +269,11 @@ if __name__ == '__main__':
                                 updated = 1
 
                     print(clock_start, "IDLE", "IDLE", idle_count,
-                          round(i_cpu_high * idle_count * 0.001, 2), "J")
+                          round(i_cpu_idle * idle_count * 0.001, 2), "J")
                     clock_start = clock_end
-                    total_energy += round(i_cpu_high * idle_count * 0.001, 2)
+                    total_energy += round(i_cpu_idle * idle_count * 0.001, 2)
                     total_idle = total_idle + idle_count
-                    idle_count = 0;
+                    idle_count = 0
 
                 if updated == 1:
                     break
@@ -287,7 +283,6 @@ if __name__ == '__main__':
         print("Total Energy Consumption: ", total_energy, "J")
         print("Percentage Time spent IDLE: ", total_idle, "seconds")
         print("Total Execution Time: ", clock, "seconds")
-##########################################################################################################
 
     if len(sys.argv) == 4:
         if sys.argv[2] == "EDF" and sys.argv[3] == "EE":
