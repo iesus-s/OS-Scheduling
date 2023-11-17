@@ -1,6 +1,5 @@
 import pandas as pd
 import sys
-from sys import exit
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -153,14 +152,15 @@ if __name__ == '__main__':
             print("Total Energy Consumption: ", total_energy, "J")
             print("Percentage Time spent IDLE: ", total_idle, "seconds")
             print("Total Execution Time: ", clock, "seconds")
+
     if sys.argv[2] == "RM":
-        # Finding Earliest Deadline First at maximum CPU Frequency #
+        # Find RM at maximum CPU Frequency #
         row_count = len(text_input)
         table = []
         iterations = []
         it_flag = []
         rm_table = []
-        ex_table = []
+        index_table = []
         temp_table = []
         total_energy = 0
         total_idle = 0
@@ -169,10 +169,14 @@ if __name__ == '__main__':
         index = 0
         index_check = 0
         index_prev = 3
-        clock = 0
+        clock = 1
         state = 0
+        sorted_ex = []
+        sorted_task = []
+        task_list = ["w1", "w2", "w3", "w4", "w5"]
+        next_deadline = [10000, 10000, 10000, 10000, 10000]
 
-        # Create EDF Table
+        # Create RM Table
         for i in range(row_count - 1):
             table.append(text_input.iloc[i + 1])
         for i in range(len(table)):
@@ -180,26 +184,110 @@ if __name__ == '__main__':
         for i in range(len(table)):
             ex_table.append(table[i][2])
         for i in range(len(table)):
-            iterations.append(1)
-        for i in range(len(table)):
-            temp_table.append(table[i][1])
+            iterations.append(0)
         for i in range(len(table)):
             it_flag.append(1)
 
-        # EDF Scheduler
+        sorted_rm = sorted(rm_table)
+
+        for m in range(len(sorted_rm)):
+            for j in range(len(sorted_rm)):
+                if sorted_rm[m] == rm_table[j]:
+                    index_table.append(j)
+                    sorted_ex.append(ex_table[j])
+                    temp_table.append(ex_table[j])
+                    sorted_task.append(task_list[j])
+
+        # print("after sorting")
+        # print(sorted_rm)
+        # print(index_table)
+        # print(sorted_ex)
+        # print(sorted_task)
+        # print(temp_table)
+
+        cpu_time = 0
+        clock_start = 0
+        clock_end = 0
+        clock_count = 0
+        updated = 0
+        idle_count = 0
+
         while clock < 1000:
 
-            state = 0
-            print(clock + 1, " ", end="")
-            if sum(temp_table) == 50000:
-                print("IDLE", " ", end="")
-                print(i_cpu_idle, " ", end="")
-                state = 1
+            for x in range(len(sorted_rm)):
+                if temp_table[x] > 0:
+                    cpu_time = temp_table[x]
+                    clock_start = clock
 
-            index = rm_table.index(min(rm_table))
-            print(table[index][0], " ", end="")
-            print(rm_table[0])
-            exit()
+                    while clock_count < cpu_time:
+
+                        temp_table[x] -= 1
+                        clock_count = clock_count + 1
+                        clock = clock + 1
+
+                        ## Check for new deadlines
+                        for j in range(len(sorted_rm)):
+                            if clock == next_deadline[j]:
+                                temp_table[j] = sorted_ex[j]
+                                temp_table[x] = cpu_time - clock_count
+                                run_time = clock_count
+                                updated = 1
+
+                        if updated == 1:
+                            break
+                    if temp_table[x] == 0:
+                        iterations[x] += 1
+                        next_deadline[x] = sorted_rm[x] * (iterations[x])
+
+                    clock_end = clock - 1
+                    clock_count = 0
+
+                    if updated == 1:
+                        print(clock_start, sorted_task[x], i_cpu_high, run_time,
+                              round(i_cpu_high * run_time * 0.001, 2), "J")
+                        clock_start = clock_end
+                        total_energy += round(i_cpu_high * run_time * 0.001, 2)
+
+                    else:
+                        print(clock_start, sorted_task[x], i_cpu_high, cpu_time,
+                              round(i_cpu_high * cpu_time * 0.001, 2), "J")
+                        clock_start = clock_end
+                        total_energy += round(i_cpu_high * cpu_time * 0.001, 2)
+
+                elif sum(temp_table) == 0:
+
+                    ## make idle clock
+                    while sum(temp_table) == 0:
+
+                        idle_count = idle_count + 1
+                        ##clock_start = clock
+                        clock_end = clock - 1
+
+                        clock = clock + 1
+
+                        ## Check for new deadlines
+                        for j in range(len(sorted_rm)):
+                            if clock == next_deadline[j]:
+                                temp_table[j] = sorted_ex[j]
+                                run_time = clock_count
+                                updated = 1
+
+                    print(clock_start, "IDLE", "IDLE", idle_count,
+                          round(i_cpu_high * idle_count * 0.001, 2), "J")
+                    clock_start = clock_end
+                    total_energy += round(i_cpu_high * idle_count * 0.001, 2)
+                    total_idle = total_idle + idle_count
+                    idle_count = 0;
+
+                if updated == 1:
+                    break
+
+            updated = 0
+
+        print("Total Energy Consumption: ", total_energy, "J")
+        print("Percentage Time spent IDLE: ", total_idle, "seconds")
+        print("Total Execution Time: ", clock, "seconds")
+##########################################################################################################
 
     if len(sys.argv) == 4:
         if sys.argv[2] == "EDF" and sys.argv[3] == "EE":
